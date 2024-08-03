@@ -18,12 +18,11 @@ jobs:
         DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
       run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD 
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v2
-      with:
-          context: ./
-          push: true
-          tags: ${{secrets.DOCKER_USER}}/bbcheadline:latest
+    - name: Build Docker images
+      run: docker compose -f docker-compose.yml build 
+
+    - name: Push Docker images
+      run: docker compose -f docker-compose.yml push 
 
     # - name: Docker Pull & Run From Hub
     #   uses: appleboy/ssh-action@master
