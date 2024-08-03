@@ -24,6 +24,15 @@ jobs:
     - name: Push Docker images
       run: docker compose -f docker-compose.yml push 
 
+    - name: copy files to target server
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{secrets.EC2_INSTANCE_IP}}
+        username: ec2-user
+        key: ${{secrets.PASSWORD}}
+        source: "docker-compose.yml"
+        target: "."
+
     - name: Build and Start Docker Compose
       uses: appleboy/ssh-action@master
       with:
