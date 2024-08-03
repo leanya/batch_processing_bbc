@@ -1,3 +1,3 @@
 # START CRON JOB
-0 15 * * * python /data_prep_dag.py >> /cron.log
+0 19 * * * python /data_prep_dag.py >> /cron.log
 # END CRON JOB
