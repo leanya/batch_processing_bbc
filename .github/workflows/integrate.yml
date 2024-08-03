@@ -42,7 +42,7 @@ jobs:
         script: |
           docker-compose stop
           docker-compose rm -f
-          docker compose up --pull=always -d
+          docker-compose up -d
 
 
     
