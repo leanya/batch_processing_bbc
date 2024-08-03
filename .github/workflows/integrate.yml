@@ -1,0 +1,41 @@
+name: Continuous Deployment
+
+on:
+  pull_request:
+    branches: main
+
+jobs:
+  test_pull_request:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: Login to DockerHub
+      env: 
+        DOCKER_USER: ${{secrets.DOCKER_USER}}
+        DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+      run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD 
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+          context: ./
+          push: true
+          tags: ${{secrets.DOCKER_USER}}/bbcheadline:latest
+
+    # - name: Docker Pull & Run From Hub
+    #   uses: appleboy/ssh-action@master
+    #   with:
+    #     host: ${{secrets.EC2_INSTANCE_IP}}
+    #     username: ec2-user
+    #     key: ${{secrets.PASSWORD}}
+    #     script: |
+    #       docker compose pull ${{secrets.DOCKER_USER}}/bbcheadline:latest
+    #       docker-compose stop
+    #       docker-compose rm -f
+    #       docker compose up -d
+
+
+    
