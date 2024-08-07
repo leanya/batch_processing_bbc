@@ -1,16 +1,13 @@
-from ast import literal_eval
 import matplotlib.pyplot as plt
-import pandas as pd
-import streamlit as st
-from datetime import datetime, timedelta
-from wordcloud import WordCloud
-import psycopg2
-from datetime import date
-import nltk
 from nltk import FreqDist
+import pandas as pd
+import psycopg2
+import streamlit as st
+from wordcloud import WordCloud
 
 def form_connection():
 
+    # Connect to postgresql docker
     conn = psycopg2.connect(
         database='postgres',
         user='postgres',
@@ -24,12 +21,13 @@ def form_connection():
 
 def extract_dataset(conn, cursor):
     
+    # Extract dataset from postgresql docker
     sql = "SELECT * FROM bbc"
     cursor.execute(sql)
     query_output = cursor.fetchall()
-    # convert to a pandas dataframe 
+    # Convert to a pandas dataframe 
     df = pd.DataFrame(query_output, columns=['headline', 'tokens', 'etl_date'])
-
+    # Close the connection 
     cursor.close()
     conn.close()
 
@@ -39,6 +37,7 @@ def _helper_check_most_freq(x, most_freq_keywords):
 
     if any(i in most_freq_keywords for i in x):
         return True
+    
     return False
 
 def data_preparation_for_visualisation(df_clean, x_frequent, y_wordcloud):
@@ -70,20 +69,23 @@ conn, cursor = form_connection()
 df_clean_all = extract_dataset(conn, cursor)
 df_clean = df_clean_all.copy()
 
+# Filter out the latest dataset
 max_date = df_clean["etl_date"].max()
 df_clean = df_clean[df_clean["etl_date"] == max_date]
 
 st.title("News Headline Overview")
+st.write("Last Updated" , max_date.date())
 
 y_wordcloud = st.number_input("Insert a number for the wordcloud of the top most frequent keywords", 
                               value = 12)
 x_frequent =  st.number_input("Insert a number for the headline of the top most frequent keywords", 
                               value = 3)
 
+# Prepare the dataset based on user inputs 
 df_headline, keyword_string = data_preparation_for_visualisation(df_clean, 
                                                                  x_frequent, 
                                                                  y_wordcloud)
-
+# Generate the wordcloud image 
 wordcloud = WordCloud().generate(keyword_string)
 
 # Display the wordcloud image:
