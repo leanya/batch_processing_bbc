@@ -1,8 +1,11 @@
 name: Continuous Deployment
 
 on:
-  pull_request:
-    branches: main
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
 
 jobs:
   test_pull_request:
@@ -30,16 +33,17 @@ jobs:
         host: ${{secrets.EC2_INSTANCE_IP}}
         username: ec2-user
         key: ${{secrets.PASSWORD}}
-        source: "docker-compose.yml"
+        source: "init_script.sh,docker-compose.yml"
         target: "."
 
-    - name: Build and Start Docker Compose
+    - name: Setup and run Docker Compose
       uses: appleboy/ssh-action@master
       with:
         host: ${{secrets.EC2_INSTANCE_IP}}
         username: ec2-user
         key: ${{secrets.PASSWORD}}
         script: |
+          bash ~/init_script.sh
           docker-compose stop
           docker-compose rm -f
           docker-compose pull
