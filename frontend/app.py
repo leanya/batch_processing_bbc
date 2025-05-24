@@ -7,7 +7,7 @@ from wordcloud import WordCloud
 
 def form_connection():
 
-    # Connect to postgresql docker
+    # Connect to PostgreSQL
     conn = psycopg2.connect(
         database='postgres',
         user='postgres',
@@ -21,8 +21,8 @@ def form_connection():
 
 def extract_dataset(conn, cursor):
     
-    # Extract dataset from postgresql docker
-    sql = "SELECT * FROM bbc"
+    # Extract the recent dataset from PostgreSQL 
+    sql = "SELECT * FROM bbc WHERE etl_date::date >= current_date - INTERVAL '3 DAYS';"
     cursor.execute(sql)
     query_output = cursor.fetchall()
     # Convert to a pandas dataframe 
