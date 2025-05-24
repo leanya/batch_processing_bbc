@@ -4,7 +4,8 @@ import requests
 import nltk
 from nltk.tag import pos_tag
 from nltk.tokenize import word_tokenize
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, MetaData, Table, Column, Text, DateTime, ARRAY, UniqueConstraint
+from sqlalchemy.dialects.postgresql import ARRAY as PG_ARRAY
 import sqlalchemy
 
 
@@ -57,19 +58,25 @@ def data_cleaning(df):
 
 def write_postgres(df):
 
-    # Specify the data types of the columns 
-    dtypes = {
-        'headline' : sqlalchemy.types.TEXT(),
-        'tokens' : sqlalchemy.types.ARRAY(sqlalchemy.types.TEXT()),
-        'etl_date' : sqlalchemy.types.DateTime() 
-    }
-
     # Connect and write to postgresql docker 
     engine = create_engine('postgresql+psycopg2://postgres:postgres@db_postgres:5432/postgres')
+    
+    # Create the table if it does not exist 
+    # Implement a unique contraint on the headline text to avoid duplication of data
+    metadata = MetaData()
+    Table(
+        'bbc',
+        metadata,
+        Column('headline', Text, nullable=False),
+        Column('tokens', PG_ARRAY(Text)),
+        Column('etl_date', DateTime),
+        UniqueConstraint('headline', name='unique_headline') 
+    )
+    metadata.create_all(engine)
+
     df.to_sql(name = "bbc", 
               con = engine, 
               index = False,
-              dtype = dtypes,
               if_exists = "append")
     
     # Close the connection 
