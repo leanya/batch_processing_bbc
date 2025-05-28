@@ -4,9 +4,8 @@ import requests
 import nltk
 from nltk.tag import pos_tag
 from nltk.tokenize import word_tokenize
-from sqlalchemy import create_engine, MetaData, Table, Column, Text, DateTime, ARRAY, UniqueConstraint
+from sqlalchemy import create_engine, MetaData, Table, Column, text, Text, DateTime, ARRAY, UniqueConstraint
 from sqlalchemy.dialects.postgresql import ARRAY as PG_ARRAY
-import sqlalchemy
 
 
 def scrape_headline_dataset(url):
@@ -74,10 +73,18 @@ def write_postgres(df):
     )
     metadata.create_all(engine)
 
-    df.to_sql(name = "bbc", 
-              con = engine, 
-              index = False,
-              if_exists = "append")
+    with engine.begin() as connection:
+        for _, row in df.iterrows():
+            stmt = text("""
+                INSERT INTO bbc (headline, tokens, etl_date)
+                VALUES (:headline, :tokens, :etl_date)
+                ON CONFLICT (headline) DO NOTHING;
+            """)
+            connection.execute(stmt, {
+            "headline": row["headline"],
+            "tokens": row["tokens"],
+            "etl_date": row["etl_date"]
+            })
     
     # Close the connection 
     engine.dispose()
