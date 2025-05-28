@@ -27,6 +27,7 @@ def extract_dataset(conn, cursor):
     query_output = cursor.fetchall()
     # Convert to a pandas dataframe 
     df = pd.DataFrame(query_output, columns=['headline', 'tokens', 'etl_date'])
+    print(df.info())
     # Close the connection 
     cursor.close()
     conn.close()
@@ -69,10 +70,7 @@ conn, cursor = form_connection()
 df_clean_all = extract_dataset(conn, cursor)
 df_clean = df_clean_all.copy()
 
-# Filter out the latest dataset
 max_date = df_clean["etl_date"].max()
-df_clean = df_clean[df_clean["etl_date"] == max_date]
-
 st.title("News Headline Overview")
 st.write("Last Updated" , max_date.date())
 
