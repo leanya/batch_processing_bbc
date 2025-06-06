@@ -22,7 +22,7 @@ def form_connection():
 def extract_dataset(conn, cursor):
     
     # Extract the recent dataset from PostgreSQL 
-    sql = "SELECT * FROM bbc WHERE etl_date::date >= current_date - INTERVAL '3 DAYS';"
+    sql = "SELECT * FROM bbc WHERE etl_date::date >= current_date - INTERVAL '2 DAYS';"
     cursor.execute(sql)
     query_output = cursor.fetchall()
     # Convert to a pandas dataframe 
@@ -48,22 +48,17 @@ def data_preparation_for_visualisation(df_clean, x_frequent, y_wordcloud):
     keyword_freqdist = FreqDist(keyword_list) 
 
     # Extract the top x most frequent keywords 
-    most_freq_keywords = []
-    for i in keyword_freqdist.most_common(x_frequent):
-        most_freq_keywords.append(i[0])
-    most_freq_keywords = '|'.join( most_freq_keywords)
+    most_freq_keywords = dict(keyword_freqdist.most_common(x_frequent))
+    most_freq_keywords = list(most_freq_keywords.keys())
 
     # Extract the corresponding headline of the top 3 most frequent keywords 
     df_headline = df_clean.loc[df_clean.apply(lambda x: _helper_check_most_freq(x['tokens'], most_freq_keywords ), axis = 1), 'headline']
     df_headline = df_headline.reset_index(drop=True)
 
-    # Prepare the string to feed into wordcloud
-    keyword_string = ''
-    for word, freq in keyword_freqdist.most_common(y_wordcloud):
-        inter = ' '.join([word] * freq)
-        keyword_string  = keyword_string + inter + ' '
+    # Prepare the dictinary to feed into wordcloud
+    keyword_wordcloud = dict(keyword_freqdist.most_common(y_wordcloud))
     
-    return df_headline, keyword_string 
+    return df_headline, keyword_wordcloud 
 
 # Get the dataset 
 conn, cursor = form_connection()
@@ -80,11 +75,11 @@ x_frequent =  st.number_input("Insert a number for the headline of the top most 
                               value = 3)
 
 # Prepare the dataset based on user inputs 
-df_headline, keyword_string = data_preparation_for_visualisation(df_clean, 
+df_headline, keyword_wordcloud = data_preparation_for_visualisation(df_clean, 
                                                                  x_frequent, 
                                                                  y_wordcloud)
 # Generate the wordcloud image 
-wordcloud = WordCloud().generate(keyword_string)
+wordcloud = WordCloud().generate_from_frequencies(keyword_wordcloud)
 
 # Display the wordcloud image:
 fig, ax = plt.subplots(figsize = (12, 8))
