@@ -7,20 +7,20 @@ This project automates the extraction, processing, and visualization of BBC news
 #### Data Pipeline
 - Data Extraction and Cleaning
     - Scraping: Extract headline text from BBC website 
-    - Data Cleaning: Processes text data to remove stopwords and perform tokenisation
+    - Data Cleaning: Processes text data to extract keywords and perform tokenisation
     - Storage: Write the cleaned data to PostgreSQL database
 - Scheduling with Cron
     -  A cron job is configured within the backend Docker container to perform data extraction and cleaning daily, and setup during the container's startup
 - Data Visualisation
     - A Streamlit dashboard reads data from the PostgreSQL database
-    - It shows a wordcloud of the most common keywords and the corresponding news headline text
+    - A word cloud shows the most common keywords and the corresponding news headline text
 
 <img src = "./images/data_pipeline.png" width="50%" height="50%">
 
 #### CI/CD Deployment Pipeline
 
 - The components are dockerised and built into images that are pushed to Docker Hub
-- An AWS EC2 instance pulls that latest images and runs them using Docker Compose
+- An AWS EC2 instance pulls the latest images and runs them using Docker Compose
 
 <img src = "./images/cicd_pipeline.png" width="50%" height="50%">
 

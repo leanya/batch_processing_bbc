@@ -22,7 +22,7 @@ def form_connection():
 def extract_dataset(conn, cursor):
     
     # Extract the recent dataset from PostgreSQL 
-    sql = "SELECT * FROM bbc WHERE etl_date::date >= current_date - INTERVAL '2 DAYS';"
+    sql = "SELECT headline, tokens, etl_date FROM bbc WHERE etl_date::date >= current_date - INTERVAL '2 DAYS';"
     cursor.execute(sql)
     query_output = cursor.fetchall()
     # Convert to a pandas dataframe 
@@ -76,8 +76,8 @@ x_frequent =  st.number_input("Insert a number for the headline of the top most 
 
 # Prepare the dataset based on user inputs 
 df_headline, keyword_wordcloud = data_preparation_for_visualisation(df_clean, 
-                                                                 x_frequent, 
-                                                                 y_wordcloud)
+                                                                    x_frequent, 
+                                                                    y_wordcloud)
 # Generate the wordcloud image 
 wordcloud = WordCloud().generate_from_frequencies(keyword_wordcloud)
 

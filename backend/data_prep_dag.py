@@ -4,7 +4,7 @@ import requests
 import nltk
 from nltk.tag import pos_tag
 from nltk.tokenize import word_tokenize
-from sqlalchemy import create_engine, MetaData, Table, Column, text, Text, DateTime, ARRAY, UniqueConstraint
+from sqlalchemy import create_engine, MetaData, Table, Column, text, Text, DateTime, UniqueConstraint, Integer
 from sqlalchemy.dialects.postgresql import ARRAY as PG_ARRAY
 
 
@@ -61,15 +61,16 @@ def write_postgres(df):
     engine = create_engine('postgresql+psycopg2://postgres:postgres@db_postgres:5432/postgres')
     
     # Create the table if it does not exist 
-    # Implement a unique contraint on the headline text to avoid duplication of data
+    # Implement a unique constraint to avoid duplication of data
     metadata = MetaData()
     Table(
         'bbc',
         metadata,
+        Column('id', Integer, primary_key=True, autoincrement=True),
         Column('headline', Text, nullable=False),
         Column('tokens', PG_ARRAY(Text)),
         Column('etl_date', DateTime),
-        UniqueConstraint('headline', name='unique_headline') 
+        UniqueConstraint('headline', 'etl_date', name='unique_headline') 
     )
     metadata.create_all(engine)
 
@@ -78,7 +79,7 @@ def write_postgres(df):
             stmt = text("""
                 INSERT INTO bbc (headline, tokens, etl_date)
                 VALUES (:headline, :tokens, :etl_date)
-                ON CONFLICT (headline) DO NOTHING;
+                ON CONFLICT (headline, etl_date) DO NOTHING;
             """)
             connection.execute(stmt, {
             "headline": row["headline"],
